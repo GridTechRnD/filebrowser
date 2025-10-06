@@ -156,6 +156,11 @@ var userPutHandler = withSelfOrAdmin(func(w http.ResponseWriter, r *http.Request
 	if req.Data.ID != d.raw.(uint) {
 		return http.StatusBadRequest, nil
 	}
+	
+	err = rulesValidate(req.Data.Rules) 
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
 
 	if len(req.Which) == 0 || (len(req.Which) == 1 && req.Which[0] == "all") {
 		if !d.user.Perm.Admin {
