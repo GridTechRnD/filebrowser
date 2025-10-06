@@ -3,7 +3,7 @@ package http
 import (
 	"encoding/json"
 	"net/http"
-
+	
 	"github.com/filebrowser/filebrowser/v2/rules"
 	"github.com/filebrowser/filebrowser/v2/settings"
 )
@@ -41,6 +41,11 @@ var settingsGetHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, 
 var settingsPutHandler = withAdmin(func(_ http.ResponseWriter, r *http.Request, d *data) (int, error) {
 	req := &settingsData{}
 	err := json.NewDecoder(r.Body).Decode(req)
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
+	
+	err = rulesValidate(req.Rules) 
 	if err != nil {
 		return http.StatusBadRequest, err
 	}

@@ -3,12 +3,15 @@ package http
 import (
 	"encoding/json"
 	"errors"
+	"reflect"
+
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
 
 	libErrors "github.com/filebrowser/filebrowser/v2/errors"
+	"github.com/filebrowser/filebrowser/v2/rules"
 )
 
 func renderJSON(w http.ResponseWriter, _ *http.Request, data interface{}) (int, error) {
@@ -65,4 +68,48 @@ func stripPrefix(prefix string, h http.Handler) http.Handler {
 		r2.URL.RawPath = rp
 		h.ServeHTTP(w, r2)
 	})
+}
+
+func rulesValidate(rulesList []rules.Rule) error {
+
+	//Compare each rules with others
+	for r_i, r := range rulesList {
+		
+		if !r.Regex {
+
+			splitted_r := strings.Split(r.Path, "/")[ 1 : ]
+			
+			if len(splitted_r) == 0 {
+				return errors.New(r.Path + " invalid rule")
+			}
+			
+			for sr_i, sr := range rulesList {
+
+				if r_i != sr_i {
+
+					splitted_sr := strings.Split(sr.Path, "/")[ 1 : ]
+	
+					if r.Path == sr.Path && r_i != sr_i {
+						return errors.New(r.Path + " duplicated rule")
+					}
+	
+					if len(splitted_r) <= len(splitted_sr) {
+						
+						if reflect.DeepEqual(splitted_r, splitted_sr[ : len(splitted_r) ]) && !r.Allow {
+							return errors.New(r.Path + " conflicted rule")
+						}
+	
+					}
+
+				}
+
+
+			}
+
+		}
+
+	}
+
+	return nil
+
 }
