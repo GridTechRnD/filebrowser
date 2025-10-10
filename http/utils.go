@@ -1,6 +1,7 @@
 package http
 
 import (
+	"log"
 	"encoding/json"
 	"errors"
 	"reflect"
@@ -71,15 +72,25 @@ func stripPrefix(prefix string, h http.Handler) http.Handler {
 }
 
 func rulesValidate(rulesList []rules.Rule) error {
-
+	
 	//Compare each rules with others
 	for r_i, r := range rulesList {
-		
+		log.Println(r)
 		if !r.Regex {
-
-			splitted_r := strings.Split(r.Path, "/")[ 1 : ]
 			
-			if len(splitted_r) == 0 {
+			if r.Path[ 0 ] != '/' {
+
+				return errors.New("[" + r.Path + "]: rules must start with /")
+			}
+
+			if len(r.Path) == 0 || len( strings.Split(r.Path, "/") ) == 0 {
+
+				return errors.New("empty rule")
+			}
+
+			r_meta := GetPathMeta(r.Path)
+			
+			if len(r_meta.FullPath) == 0 {
 				return errors.New(r.Path + " invalid rule")
 			}
 			
@@ -87,27 +98,31 @@ func rulesValidate(rulesList []rules.Rule) error {
 
 				if r_i != sr_i {
 
-					splitted_sr := strings.Split(sr.Path, "/")[ 1 : ]
+					if len(sr.Path) == 0 || len( strings.Split(sr.Path, "/") ) == 0 {
+
+						return errors.New("empty rule")
+					}
+
+					sr_meta := GetPathMeta(sr.Path)
 	
-					if r.Path == sr.Path && r_i != sr_i {
-						return errors.New(r.Path + " duplicated rule")
+					if reflect.DeepEqual(r_meta.FullPath, sr_meta.FullPath) && r_i != sr_i {
+						return errors.New(r.Path + "and" + sr.Path + " is duplicated rule")
 					}
 	
-					if len(splitted_r) <= len(splitted_sr) {
+					if len(r_meta.FullPath) <= len(sr_meta.FullPath) {
 						
-						if reflect.DeepEqual(splitted_r, splitted_sr[ : len(splitted_r) ]) && !r.Allow {
-							return errors.New(r.Path + " conflicted rule")
+						if reflect.DeepEqual(r_meta.FullPath, sr_meta.FullPath[ : len(r_meta.FullPath) ]) && !r.Allow {
+							return errors.New(r.Path + "and" + sr.Path + " have conflicted rules")
 						}
 	
 					}
 
+					if reflect.DeepEqual(r_meta.Parent, sr_meta.Parent) && r.Allow != sr.Allow {
+						return errors.New(r.Path + "and" + sr.Path + " have conflicted rules")
+					}
 				}
-
-
 			}
-
 		}
-
 	}
 
 	return nil

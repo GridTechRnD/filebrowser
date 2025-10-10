@@ -25,7 +25,7 @@ func MatchHidden(path string) bool {
 	return path != "" && strings.HasPrefix(filepath.Base(path), ".")
 }
 
-// Matches matches a path against a rule.
+// Matches matches a path against a rule
 func (r *Rule) Matches(path string) bool {
 	if r.Regex {
 		return r.Regexp.MatchString(path)

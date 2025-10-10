@@ -3,15 +3,18 @@ package http
 import (
 	"log"
 	"net/http"
+	"reflect"
+	"slices"
+	"sort"
 	"strconv"
-
-	"github.com/tomasen/realip"
+	"strings"
 
 	"github.com/filebrowser/filebrowser/v2/rules"
 	"github.com/filebrowser/filebrowser/v2/runner"
 	"github.com/filebrowser/filebrowser/v2/settings"
 	"github.com/filebrowser/filebrowser/v2/storage"
 	"github.com/filebrowser/filebrowser/v2/users"
+	"github.com/tomasen/realip"
 )
 
 type handleFunc func(w http.ResponseWriter, r *http.Request, d *data) (int, error)
@@ -25,25 +28,101 @@ type data struct {
 	raw      interface{}
 }
 
+type PathMeta struct {
+	FullPath	[]string
+	Parent		[]string
+	Object		string
+}
+
+func GetPathMeta( path string ) PathMeta {
+
+	splitted_path := strings.Split(path, "/")[ 1 : ]
+
+	return PathMeta{
+		FullPath: splitted_path,
+		Parent: splitted_path[ : len(splitted_path) - 1],
+		Object: splitted_path[ len(splitted_path) - 1 ],
+	}
+
+}
+
 // Check implements rules.Checker.
 func (d *data) Check(path string) bool {
 	if d.user.HideDotfiles && rules.MatchHidden(path) {
 		return false
 	}
 
-	allow := true
-	for _, rule := range d.settings.Rules {
-		if rule.Matches(path) {
-			allow = rule.Allow
-		}
+	if d.user.Perm.Admin {
+		return true
 	}
 
-	for _, rule := range d.user.Rules {
-		if rule.Matches(path) {
-			allow = rule.Allow
-		}
+	if path[ len(path) - 1 ] == '/' {
+		return true
 	}
 
+	concat_rules := slices.Concat(d.settings.Rules, d.user.Rules)
+	sort.Slice(concat_rules, func(i, j int) bool {
+		return len(strings.Split(concat_rules[i].Path, "/")) > len(strings.Split(concat_rules[j].Path, "/"))
+	})
+	
+	path_meta := GetPathMeta(path)
+
+	allow_rules := []string{}
+	deny_rules := []string{}
+	
+	for _, rule := range(concat_rules) {
+		rule_meta := GetPathMeta(rule.Path)
+		
+		if len(path_meta.Parent) < len(rule_meta.Parent) {
+			
+			if path_meta.Object == rule_meta.FullPath[ len(path_meta.Parent) ] && !slices.Contains(allow_rules, path_meta.Object) {
+
+				allow_rules = append(allow_rules, path_meta.Object)
+			}
+		} else if len(path_meta.Parent) == len(rule_meta.Parent) && reflect.DeepEqual(path_meta.Parent, rule_meta.Parent) {
+			
+			if rule.Allow && !slices.Contains(allow_rules, rule_meta.Object) {
+	
+				allow_rules = append(allow_rules, rule_meta.Object)
+			}
+
+			if !rule.Allow && !slices.Contains(deny_rules, rule_meta.Object) {
+					
+				deny_rules = append(deny_rules, rule_meta.Object)
+			}
+			
+		} else if len(path_meta.Parent) > len(rule_meta.Parent) {
+			
+			if rule.Allow {
+
+				if reflect.DeepEqual(path_meta.Parent[ : len(rule_meta.FullPath) ], rule_meta.FullPath) {
+					
+					return true
+				}
+			}
+
+			if !rule.Allow {
+
+				if reflect.DeepEqual(path_meta.Parent[ : len(rule_meta.FullPath) - 1 ], rule_meta.Parent) && path_meta.Parent[ len(rule_meta.FullPath) - 1 ] != rule_meta.Object {
+					
+					return true
+				}
+			}
+		}
+	}
+	
+	allow := false
+	
+	if len(allow_rules) >= 1 {
+		
+		allow = slices.Contains(allow_rules, path_meta.Object)
+	}
+
+	if len(deny_rules) >= 1 {
+		
+		allow =  !slices.Contains(deny_rules, path_meta.Object)
+	}
+	
 	return allow
 }
 
