@@ -9,6 +9,7 @@ import User from "@/views/settings/User.vue";
 import Settings from "@/views/Settings.vue";
 import GlobalSettings from "@/views/settings/Global.vue";
 import ProfileSettings from "@/views/settings/Profile.vue";
+import UserGroups from "@/views/settings/Groups.vue";
 import Shares from "@/views/settings/Shares.vue";
 import Errors from "@/views/Errors.vue";
 import { useAuthStore } from "@/stores/auth";
@@ -30,6 +31,7 @@ const titles = {
   Forbidden: "errors.forbidden",
   NotFound: "errors.notFound",
   InternalServerError: "errors.internal",
+  UsersGroups: "settings.usersGroups",
 };
 
 const routes = [
@@ -103,6 +105,14 @@ const routes = [
             meta: {
               requiresAdmin: true,
             },
+          },
+          {
+            path: "usersGroups",
+            name: "UsersGroups",
+            component: UserGroups,
+            meta: {
+              requiresAdmin: true,
+            },  
           },
           {
             path: "users/:id",

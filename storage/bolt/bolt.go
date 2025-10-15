@@ -4,6 +4,7 @@ import (
 	"github.com/asdine/storm/v3"
 
 	"github.com/filebrowser/filebrowser/v2/auth"
+	"github.com/filebrowser/filebrowser/v2/groups"
 	"github.com/filebrowser/filebrowser/v2/settings"
 	"github.com/filebrowser/filebrowser/v2/share"
 	"github.com/filebrowser/filebrowser/v2/storage"
@@ -13,6 +14,7 @@ import (
 // NewStorage creates a storage.Storage based on Bolt DB.
 func NewStorage(db *storm.DB) (*storage.Storage, error) {
 	userStore := users.NewStorage(usersBackend{db: db})
+	groupStore := groups.NewStorage(groupsBackend{db: db})
 	shareStore := share.NewStorage(shareBackend{db: db})
 	settingsStore := settings.NewStorage(settingsBackend{db: db})
 	authStore := auth.NewStorage(authBackend{db: db}, userStore)
@@ -24,6 +26,7 @@ func NewStorage(db *storm.DB) (*storage.Storage, error) {
 
 	return &storage.Storage{
 		Auth:     authStore,
+		Groups:	  groupStore,
 		Users:    userStore,
 		Share:    shareStore,
 		Settings: settingsStore,

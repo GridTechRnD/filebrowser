@@ -20,6 +20,7 @@
               {{ t("settings.globalSettings") }}
             </li></router-link
           >
+            
           <router-link to="/settings/users" v-if="user?.perm.admin"
             ><li
               :class="{
@@ -30,6 +31,11 @@
               {{ t("settings.userManagement") }}
             </li></router-link
           >
+          <router-link to="/settings/usersGroups" v-if="user?.perm.admin">
+            <li>
+              {{ t("settings.usersGroups") }}
+            </li>
+          </router-link>
         </ul>
       </div>
     </div>
