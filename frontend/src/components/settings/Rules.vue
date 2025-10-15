@@ -15,7 +15,7 @@
       <input
         @keypress.enter.prevent
         type="text"
-        style="width: 50%; border-radius: 15px;"
+        style="width: 50%; border-radius: 5px;"
         v-else
         v-model="rule.path"
         :placeholder="$t('settings.insertPath')"

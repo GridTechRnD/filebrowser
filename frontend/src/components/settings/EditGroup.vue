@@ -26,14 +26,14 @@
           <tr v-for="user in selectedUsers" :key="user.id">
             <td>{{ user.id }}</td>
             <td>{{ user.username }}</td>
-            <td><button type="button" @click="handleRemoveUser(user.id)">Remove</button></td>
+            <td><button type="button" style="background-color: red; color: white; border: 0px; width: 20px;" @click="handleRemoveUser(user.id)">-</button></td>
           </tr>
         </tbody>
       </table>
     </div>
 
     <!-- Adicionar usuário -->
-    <div class="form-group user-select">
+    <div class="form-group user-select" style="margin: 20px;">
       <select v-model="selectedUserId" class="input">
         <option disabled value="">-- Select a user --</option>
         <option
@@ -44,7 +44,7 @@
           {{ user.username }}
         </option>
       </select>
-      <button class="button primary" @click="handleAddUser" :disabled="!selectedUserId">
+      <button class="button button--flat" @click="handleAddUser" :disabled="!selectedUserId">
         Add
       </button>
     </div>
@@ -69,6 +69,7 @@
 import { inject, ref, onMounted } from "vue";
 import { groups as gApi } from "@/api";
 import { users as uApi } from "@/api";
+import { useLayoutStore } from "@/stores/layout";
 import Rules from "./Rules.vue";
 
 interface SelectionUser {
@@ -80,7 +81,8 @@ const props = defineProps([
     "selectedGroup",
     "modelHandlerEdit"
 ])
-console.log(props.selectedGroup)
+
+const layoutStore = useLayoutStore();
 
 const $showError = inject<IToastError>("$showError")!;
 const $showSuccess = inject<IToastSuccess>("$showSuccess")!;
@@ -94,7 +96,9 @@ const rules = ref<IRule[]>([...props.selectedGroup.groupRules])
 // Buscar usuários ao montar
 onMounted(async () => {
   try {
+
     const response = await uApi.getAll();
+
     availableUsers.value = response
       .filter((user: any) => !user.perm.admin && !props.selectedGroup.usersIds?.includes(user.id))
       .map((user: any) => ({ id: user.id, username: user.username }));
@@ -102,8 +106,9 @@ onMounted(async () => {
     selectedUsers.value = response
       .filter((user: any) => props.selectedGroup.usersIds?.includes(user.id))
       .map((user: any) => ({ id: user.id, username: user.username }));  
+    
   } catch (err) {
-    alert("Failed to fetch users.");
+    alert(err);
   }
 });
 

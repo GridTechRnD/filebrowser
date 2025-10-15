@@ -25,6 +25,7 @@
           <tr v-for="user in selectedUsers" :key="user.id">
             <td>{{ user.id }}</td>
             <td>{{ user.username }}</td>
+            <td><button type="button" style="background-color: red; color: white; border: 0px; width: 20px;" @click="handleRemoveUser(user.id)">-</button></td>
           </tr>
         </tbody>
       </table>
@@ -42,7 +43,7 @@
           {{ user.username }}
         </option>
       </select>
-      <button class="button primary" @click="handleAddUser" :disabled="!selectedUserId">
+      <button class="button button--flat" @click="handleAddUser" :disabled="!selectedUserId">
         Add
       </button>
     </div>
@@ -113,6 +114,14 @@ function handleAddUser() {
     selectedUsers.value.push(user);
     availableUsers.value = availableUsers.value.filter((u) => u.id !== user.id);
     selectedUserId.value = null;
+  }
+}
+
+function handleRemoveUser(userId: number) {
+  const user = selectedUsers.value.find((u) => u.id === userId);
+  if (user) {
+    availableUsers.value.push(user);
+    selectedUsers.value = selectedUsers.value.filter((u) => u.id !== userId);
   }
 }
 

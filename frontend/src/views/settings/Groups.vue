@@ -1,9 +1,10 @@
 <template>
-    <div class="groups-container">
+    <div class="groups-container" v-if="!layoutStore.loading">
         <div class="header">
             <h1>Groups</h1>
             <button v-if="mode == 'Listing'" class="btn btn-primary" @click="modelHandlerCreate">+ Create group</button>
-            <button v-if="mode != 'Listing'" class="btn btn-secondary" @click="modelHandlerCreate">Return</button>
+            <button v-else-if="mode == 'Creating'" class="button button--flat button--red" @click="modelHandlerCreate">Return</button>
+            <button v-else-if="mode == 'Editing'" class="button button--flat button--red" @click="modelHandlerEdit">Return</button>
         </div>
         <div v-if="mode == 'Listing'" class="table-container">
             <table class="groups-table">
@@ -19,8 +20,8 @@
                         <td>{{ group.groupName }}</td>
                         <td>{{ group.usersIds?.length || 0 }}</td>
                         <td>
-                            <button class="btn btn-edit" @click="modelHandlerEdit(group)">Edit</button>
-                            <button class="btn btn-delete" @click="deleteSelectedGroup(group.id)">Delete</button>
+                            <button type="button" class="button button--flat" @click="modelHandlerEdit(group)">Edit</button>
+                            <button type="button" class="button button--flat button--red" @click="deleteSelectedGroup(group.id)">Delete</button>
                         </td>
                     </tr>
                 </tbody>
@@ -35,8 +36,11 @@
 
 import { inject, ref, onMounted } from "vue"
 import { deleteGroup, getAllGroups } from "@/api/groups"
+import { useLayoutStore } from "@/stores/layout";
 import CreateGroup from "@/components/settings/CreateGroup.vue"
 import EditGroup from "@/components/settings/EditGroup.vue";
+
+const layoutStore = useLayoutStore();
 
 const $showError = inject<IToastError>("$showError")!;
 const $showSuccess = inject<IToastSuccess>("$showSuccess")!;
@@ -45,10 +49,21 @@ const mode = ref<string>("Listing")
 const groups = ref<IGroup[]>([])
 const selectedGroup = ref<IGroup | null>(null)
 
-onMounted(() => {
-    getAllGroups().then(response => {
-        groups.value = response
-    })
+onMounted(async () => {
+
+    try {
+
+        layoutStore.loading = true
+
+        groups.value = await getAllGroups()
+
+        layoutStore.loading = false
+
+    } catch (error) {
+        layoutStore.loading = false
+        $showError("Error loading groups")
+    }
+
 })
 
 async function modelHandlerCreate() {
