@@ -84,7 +84,6 @@ var groupsDeleteHandler = withAdmin( func(w http.ResponseWriter, r *http.Request
 	
 	req_parameters := mux.Vars(r)
 
-
 	num, err := strconv.Atoi(req_parameters["id"])
 	
 	if err != nil {

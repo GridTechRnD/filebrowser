@@ -46,6 +46,33 @@ func GetPathMeta( path string ) PathMeta {
 
 }
 
+func AppendRules( a []rules.Rule, b []rules.Rule ) []rules.Rule {
+
+	if len(a) == 0 {
+
+		return b
+	}
+
+	for _, rule := range b {
+
+		contains := false
+
+		for _, a_rule := range a {
+			
+			if rule.Path == a_rule.Path {
+
+				contains = true
+			}
+		}
+
+		if !contains {
+			a = append(a, rule)
+		}
+	}
+
+	return a
+}
+
 // Check implements rules.Checker.
 func (d *data) Check(path string) bool {
 	if d.user.HideDotfiles && rules.MatchHidden(path) {
@@ -60,17 +87,38 @@ func (d *data) Check(path string) bool {
 		return true
 	}
 
-	concat_rules := slices.Concat(d.settings.Rules, d.user.Rules)
-	sort.Slice(concat_rules, func(i, j int) bool {
-		return len(strings.Split(concat_rules[i].Path, "/")) > len(strings.Split(concat_rules[j].Path, "/"))
+	unique_rules := d.settings.Rules
+
+	// Append user rules
+	unique_rules = AppendRules( unique_rules, d.user.Rules )
+
+	// Append group rules
+	groups, err := d.store.Groups.GetAll()
+	if err != nil {
+		
+		return false
+	}
+
+	for _, group := range groups {
+		
+		if slices.Contains(group.UsersIds, d.user.ID) {
+			
+			unique_rules = AppendRules( unique_rules, group.Rules )
+		}
+	}
+
+	sort.Slice(unique_rules, func(i, j int) bool {
+		return len(strings.Split(unique_rules[i].Path, "/")) > len(strings.Split(unique_rules[j].Path, "/"))
 	})
 	
+	log.Println(unique_rules)
+
 	path_meta := GetPathMeta(path)
 
 	allow_rules := []string{}
 	deny_rules := []string{}
 	
-	for _, rule := range(concat_rules) {
+	for _, rule := range(unique_rules) {
 		rule_meta := GetPathMeta(rule.Path)
 		
 		if len(path_meta.Parent) < len(rule_meta.Parent) {
@@ -137,7 +185,7 @@ func handle(fn handleFunc, prefix string, store *storage.Storage, server *settin
 			log.Fatalf("ERROR: couldn't get settings: %v\n", err)
 			return
 		}
-
+		
 		status, err := fn(w, r, &data{
 			Runner:   &runner.Runner{Enabled: server.EnableExec, Settings: settings},
 			store:    store,

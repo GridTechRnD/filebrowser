@@ -1,6 +1,7 @@
 package http
 
 import (
+	"slices"
 	"encoding/json"
 	"errors"
 	"log"
@@ -103,7 +104,32 @@ var userGetHandler = withSelfOrAdmin(func(w http.ResponseWriter, r *http.Request
 })
 
 var userDeleteHandler = withSelfOrAdmin(func(_ http.ResponseWriter, _ *http.Request, d *data) (int, error) {
-	err := d.store.Users.Delete(d.raw.(uint))
+	
+	groups, err := d.store.Groups.GetAll()
+
+	if err != nil {
+
+		return http.StatusBadRequest, err
+	}
+	
+	for _, group := range groups {
+
+		userID := d.raw.(uint)
+		if slices.Contains(group.UsersIds, userID) {
+			group.UsersIds = slices.DeleteFunc(
+				group.UsersIds,
+				func(n uint) bool { return n == userID },
+			)
+			
+			err = d.store.Groups.UpdateGroup( group )
+			if err != nil {
+				
+				return http.StatusBadRequest, err
+			}
+		}
+	}
+
+	err = d.store.Users.Delete(d.raw.(uint))
 	if err != nil {
 		return errToStatus(err), err
 	}
