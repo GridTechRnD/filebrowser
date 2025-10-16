@@ -1,7 +1,6 @@
 package http
 
 import (
-	"log"
 	"encoding/json"
 	"errors"
 	"reflect"
@@ -75,7 +74,7 @@ func rulesValidate(rulesList []rules.Rule) error {
 	
 	//Compare each rules with others
 	for r_i, r := range rulesList {
-		log.Println(r)
+		
 		if !r.Regex {
 			
 			if r.Path[ 0 ] != '/' {
@@ -96,29 +95,32 @@ func rulesValidate(rulesList []rules.Rule) error {
 			
 			for sr_i, sr := range rulesList {
 
-				if r_i != sr_i {
+				if !sr.Regex {
 
-					if len(sr.Path) == 0 || len( strings.Split(sr.Path, "/") ) == 0 {
-
-						return errors.New("empty rule")
-					}
-
-					sr_meta := GetPathMeta(sr.Path)
+					if r_i != sr_i {
 	
-					if reflect.DeepEqual(r_meta.FullPath, sr_meta.FullPath) && r_i != sr_i {
-						return errors.New(r.Path + "and" + sr.Path + " is duplicated rule")
-					}
+						if len(sr.Path) == 0 || len( strings.Split(sr.Path, "/") ) == 0 {
 	
-					if len(r_meta.FullPath) <= len(sr_meta.FullPath) {
-						
-						if reflect.DeepEqual(r_meta.FullPath, sr_meta.FullPath[ : len(r_meta.FullPath) ]) && !r.Allow {
-							return errors.New(r.Path + "and" + sr.Path + " have conflicted rules")
+							return errors.New("empty rule")
 						}
 	
-					}
-
-					if reflect.DeepEqual(r_meta.Parent, sr_meta.Parent) && r.Allow != sr.Allow {
-						return errors.New(r.Path + "and" + sr.Path + " have conflicted rules")
+						sr_meta := GetPathMeta(sr.Path)
+		
+						if reflect.DeepEqual(r_meta.FullPath, sr_meta.FullPath) && r_i != sr_i {
+							return errors.New(r.Path + "and" + sr.Path + " is duplicated rule")
+						}
+		
+						if len(r_meta.FullPath) <= len(sr_meta.FullPath) {
+							
+							if reflect.DeepEqual(r_meta.FullPath, sr_meta.FullPath[ : len(r_meta.FullPath) ]) && !r.Allow {
+								return errors.New(r.Path + "and" + sr.Path + " have conflicted rules")
+							}
+		
+						}
+	
+						if reflect.DeepEqual(r_meta.Parent, sr_meta.Parent) && r.Allow != sr.Allow {
+							return errors.New(r.Path + "and" + sr.Path + " have conflicted rules")
+						}
 					}
 				}
 			}

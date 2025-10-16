@@ -34,6 +34,7 @@ type PathMeta struct {
 	Object		string
 }
 
+
 func GetPathMeta( path string ) PathMeta {
 
 	splitted_path := strings.Split(path, "/")[ 1 : ]
@@ -46,32 +47,52 @@ func GetPathMeta( path string ) PathMeta {
 
 }
 
+
 func AppendRules( a []rules.Rule, b []rules.Rule ) []rules.Rule {
 
-	if len(a) == 0 {
-
-		return b
-	}
-
 	for _, rule := range b {
+		
+		if !rule.Regex {
 
-		contains := false
+			contains := false
 
-		for _, a_rule := range a {
-			
-			if rule.Path == a_rule.Path {
+			for a_i, a_rule := range a {
+				
+				if !a_rule.Regex {
 
-				contains = true
+					if len(rule.Path) > len(a_rule.Path) && strings.HasPrefix(rule.Path, a_rule.Path) {
+
+						a[a_i] = rule
+					}
+
+
+					if rule.Path == a_rule.Path {
+
+						if rule.Allow != a_rule.Allow {
+
+							a[a_i] = rule
+						}
+
+						contains = true
+					}
+				}
+			}
+
+			if !contains {
+
+				a = append(a, rule)
 			}
 		}
 
-		if !contains {
+		if rule.Regex{
+			
 			a = append(a, rule)
 		}
 	}
 
 	return a
 }
+
 
 // Check implements rules.Checker.
 func (d *data) Check(path string) bool {
@@ -87,10 +108,9 @@ func (d *data) Check(path string) bool {
 		return true
 	}
 
-	unique_rules := d.settings.Rules
 
-	// Append user rules
-	unique_rules = AppendRules( unique_rules, d.user.Rules )
+	//Begin with global rules
+	unique_rules := AppendRules( []rules.Rule{}, d.settings.Rules )
 
 	// Append group rules
 	groups, err := d.store.Groups.GetAll()
@@ -107,11 +127,13 @@ func (d *data) Check(path string) bool {
 		}
 	}
 
+	// Append user rules
+	unique_rules = AppendRules( unique_rules, d.user.Rules )
+
 	sort.Slice(unique_rules, func(i, j int) bool {
 		return len(strings.Split(unique_rules[i].Path, "/")) > len(strings.Split(unique_rules[j].Path, "/"))
 	})
-	
-	log.Println(unique_rules)
+
 
 	path_meta := GetPathMeta(path)
 
@@ -119,46 +141,62 @@ func (d *data) Check(path string) bool {
 	deny_rules := []string{}
 	
 	for _, rule := range(unique_rules) {
-		rule_meta := GetPathMeta(rule.Path)
 		
-		if len(path_meta.Parent) < len(rule_meta.Parent) {
-			
-			if path_meta.Object == rule_meta.FullPath[ len(path_meta.Parent) ] && !slices.Contains(allow_rules, path_meta.Object) {
+		if rule.Regex && rule.Regexp.MatchString(path){
 
-				allow_rules = append(allow_rules, path_meta.Object)
-			}
-		} else if len(path_meta.Parent) == len(rule_meta.Parent) && reflect.DeepEqual(path_meta.Parent, rule_meta.Parent) {
-			
-			if rule.Allow && !slices.Contains(allow_rules, rule_meta.Object) {
-	
-				allow_rules = append(allow_rules, rule_meta.Object)
-			}
-
-			if !rule.Allow && !slices.Contains(deny_rules, rule_meta.Object) {
-					
-				deny_rules = append(deny_rules, rule_meta.Object)
-			}
-			
-		} else if len(path_meta.Parent) > len(rule_meta.Parent) {
-			
 			if rule.Allow {
-
-				if reflect.DeepEqual(path_meta.Parent[ : len(rule_meta.FullPath) ], rule_meta.FullPath) {
-					
-					return true
-				}
+				
+				return true
 			}
 
 			if !rule.Allow {
 
-				if reflect.DeepEqual(path_meta.Parent[ : len(rule_meta.FullPath) - 1 ], rule_meta.Parent) && path_meta.Parent[ len(rule_meta.FullPath) - 1 ] != rule_meta.Object {
-					
-					return true
+				return false
+			}
+		} else if !rule.Regex {
+
+			rule_meta := GetPathMeta(rule.Path)
+		
+			if len(path_meta.Parent) < len(rule_meta.Parent) {
+				
+				if path_meta.Object == rule_meta.FullPath[ len(path_meta.Parent) ] && !slices.Contains(allow_rules, path_meta.Object) {
+
+					allow_rules = append(allow_rules, path_meta.Object)
+				}
+			} else if len(path_meta.Parent) == len(rule_meta.Parent) && reflect.DeepEqual(path_meta.Parent, rule_meta.Parent) {
+				
+				if rule.Allow && !slices.Contains(allow_rules, rule_meta.Object) {
+		
+					allow_rules = append(allow_rules, rule_meta.Object)
+				}
+
+				if !rule.Allow && !slices.Contains(deny_rules, rule_meta.Object) {
+						
+					deny_rules = append(deny_rules, rule_meta.Object)
+				}
+				
+			} else if len(path_meta.Parent) > len(rule_meta.Parent) {
+				
+				if rule.Allow {
+
+					if reflect.DeepEqual(path_meta.Parent[ : len(rule_meta.FullPath) ], rule_meta.FullPath) {
+						
+						return true
+					}
+				}
+
+				if !rule.Allow {
+
+					if reflect.DeepEqual(path_meta.Parent[ : len(rule_meta.FullPath) - 1 ], rule_meta.Parent) && path_meta.Parent[ len(rule_meta.FullPath) - 1 ] != rule_meta.Object {
+						
+						return true
+					}
 				}
 			}
 		}
 	}
 	
+
 	allow := false
 	
 	if len(allow_rules) >= 1 {

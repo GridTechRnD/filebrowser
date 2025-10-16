@@ -45,6 +45,11 @@ var groupPostHandler = withAdmin( func( w http.ResponseWriter, r *http.Request, 
 		return http.StatusBadRequest, err
 	}
 
+	err = rulesValidate(req.Data.Rules)
+	if err != nil {
+
+		return http.StatusBadRequest, err
+	}
 	
 	err = d.store.Groups.SaveGroup( req.Data)
 
@@ -70,6 +75,12 @@ var groupsPutHandler = withAdmin( func (w http.ResponseWriter, r *http.Request, 
 
 	req, err := getGroup(w, r)
 	
+	err = rulesValidate(req.Data.Rules) 
+	if err != nil {
+
+		return http.StatusBadRequest, err
+	}
+
 	if err != nil {
 
 		return http.StatusBadRequest, err

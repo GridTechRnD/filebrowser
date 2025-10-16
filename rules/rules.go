@@ -46,6 +46,6 @@ func (r *Regexp) MatchString(s string) bool {
 	if r.regexp == nil {
 		r.regexp = regexp.MustCompile(r.Raw)
 	}
-
+	
 	return r.regexp.MatchString(s)
 }

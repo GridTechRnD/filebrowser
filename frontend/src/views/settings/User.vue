@@ -12,6 +12,7 @@
           <user-form
             v-model:user="user"
             v-model:createUserDir="createUserDir"
+            :userGroups="userGroups"
             :isDefault="false"
             :isNew="isNew"
           />
@@ -51,7 +52,7 @@
 <script setup lang="ts">
 import { useAuthStore } from "@/stores/auth";
 import { useLayoutStore } from "@/stores/layout";
-import { users as api, settings } from "@/api";
+import { users as api, settings, groups } from "@/api";
 import UserForm from "@/components/settings/UserForm.vue";
 import Errors from "@/views/Errors.vue";
 import { computed, inject, onMounted, ref, watch } from "vue";
@@ -62,6 +63,7 @@ import { StatusError } from "@/api/utils";
 const error = ref<StatusError>();
 const originalUser = ref<IUser>();
 const user = ref<IUser>();
+const userGroups = ref<string[]>([]);
 const createUserDir = ref<boolean>(false);
 
 const $showError = inject<IToastError>("$showError")!;
@@ -105,6 +107,7 @@ const fetchData = async () => {
         ? route.params.id.join("")
         : route.params.id;
       user.value = { ...(await api.get(parseInt(id))) };
+      userGroups.value = (await groups.getAllGroups()).filter(g => g.usersIds?.includes(user.value!.id)).map(g => g.groupName);
     }
   } catch (err) {
     if (err instanceof Error) {

@@ -7,7 +7,7 @@
       <input
         @keypress.enter.prevent
         type="text"
-        style="width: 50%; border-radius: 15px;"
+        style="width: 50%; border-radius: 5px;"
         v-if="rule.regex"
         v-model="rule.regexp.raw"
         :placeholder="$t('settings.insertRegex')"

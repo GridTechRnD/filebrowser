@@ -10,7 +10,23 @@
         placeholder="Ex: Back Office"
       />
     </div>
-
+    <!-- Adicionar usuário -->
+    <div class="form-group user-select" style="margin: 20px;">
+      <label>Add user:</label>
+      <select v-model="selectedUserId" class="input">
+        <option disabled value="">-- Select a user --</option>
+        <option
+          v-for="user in availableUsers"
+          :key="user.id"
+          :value="user.id"
+        >
+          {{ user.username }}
+        </option>
+      </select>
+      <button class="button button--flat" @click="handleAddUser" :disabled="!selectedUserId">
+        Add
+      </button>
+    </div>
     <!-- Lista de usuários selecionados -->
     <div class="form-section">
       <h3 class="section-title">Users</h3>
@@ -30,23 +46,6 @@
           </tr>
         </tbody>
       </table>
-    </div>
-
-    <!-- Adicionar usuário -->
-    <div class="form-group user-select" style="margin: 20px;">
-      <select v-model="selectedUserId" class="input">
-        <option disabled value="">-- Select a user --</option>
-        <option
-          v-for="user in availableUsers"
-          :key="user.id"
-          :value="user.id"
-        >
-          {{ user.username }}
-        </option>
-      </select>
-      <button class="button button--flat" @click="handleAddUser" :disabled="!selectedUserId">
-        Add
-      </button>
     </div>
 
     <!-- Regras -->
@@ -156,7 +155,7 @@ function handleEditGroup() {
         
         
     }).catch( err => {
-        $showError("Failed to create group.", err);
+        $showError(err);
     });
 }
 </script>
@@ -166,5 +165,25 @@ function handleEditGroup() {
   display: flex;
   gap: 0.5rem;
   align-items: center;
+}
+
+/* Garante que o botão de remoção na tabela fique centralizado */
+.listing-table td {
+  vertical-align: middle;
+}
+
+/* Opcional: ajusta o botão de remoção para melhor alinhamento */
+.listing-table button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  height: 20px;
+}
+
+.form-group,
+.form-section,
+.form-actions {
+  margin-bottom: 1.5rem;
 }
 </style>

@@ -54,7 +54,12 @@
       />
       {{ t("settings.lockPassword") }}
     </p>
-
+    <section class="user-groups">
+      <h3>User Groups</h3>
+      <ul>
+        <li v-for="group in userGroups" :key="group">{{ group }}</li>
+      </ul>
+    </section>
     <permissions v-model:perm="user.perm" />
     <commands v-if="enableExec" v-model:commands="user.commands" />
 
@@ -82,6 +87,7 @@ const originalUserScope = ref<string | null>(null);
 
 const props = defineProps<{
   user: IUserForm;
+  userGroups: string[];
   isNew: boolean;
   isDefault: boolean;
   createUserDir?: boolean;
