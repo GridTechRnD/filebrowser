@@ -42,3 +42,6 @@ build/
 
 default.nix
 Dockerfile.dev
+
+/frontend/ssl
+filebrowser.conf
