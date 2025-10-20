@@ -172,6 +172,7 @@
           <user-form
             :isNew="false"
             :isDefault="true"
+            :userGroups="(settings as any).userGroups || []"
             v-model:user="settings.defaults"
           />
         </div>
@@ -392,6 +393,11 @@ onMounted(async () => {
     layoutStore.loading = true;
     const original: ISettings = await api.get();
     const newSettings: ISettings = { ...original, commands: {} };
+
+    // Ensure userGroups exists on settings
+    if (!("userGroups" in newSettings)) {
+      (newSettings as any).userGroups = [];
+    }
 
     const keys = Object.keys(original.commands) as Array<keyof SettingsCommand>;
     for (const key of keys) {

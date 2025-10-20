@@ -4,7 +4,7 @@
             <h1>Groups</h1>
             <button v-if="mode == 'Listing'" class="btn btn-primary" @click="modelHandlerCreate">+ Create group</button>
             <button v-else-if="mode == 'Creating'" class="button button--flat button--red" @click="modelHandlerCreate">Return</button>
-            <button v-else-if="mode == 'Editing'" class="button button--flat button--red" @click="modelHandlerEdit">Return</button>
+            <button v-else-if="mode == 'Editing'" class="button button--flat button--red" @click="_ => modelHandlerEdit(null)">Return</button>
         </div>
         <div v-if="mode == 'Listing'" class="table-container">
             <table class="groups-table">
@@ -83,7 +83,7 @@ async function modelHandlerCreate() {
     }   
 }
 
-async function modelHandlerEdit( group: IGroup ) {
+async function modelHandlerEdit( group: IGroup | null ) {
 
     if (mode.value == "Editing") {
 
