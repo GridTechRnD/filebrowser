@@ -42,6 +42,5 @@ USER user
 VOLUME /srv /config /database
 
 EXPOSE 80
-EXPOSE 443
 
 ENTRYPOINT [ "tini", "--", "/init.sh" ]
