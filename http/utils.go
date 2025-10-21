@@ -3,6 +3,7 @@ package http
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"reflect"
 	"regexp"
 
@@ -77,6 +78,7 @@ func rulesValidate(rulesList []rules.Rule) error {
 	for r_i, r := range rulesList {
 		
 		if r.Regex {
+			log.Println(r)
 			_, err := regexp.Compile(r.Regexp.Raw)
 
 			if err != nil {

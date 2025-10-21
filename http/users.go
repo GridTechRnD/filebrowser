@@ -147,6 +147,11 @@ var userPostHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, d *
 		return http.StatusBadRequest, nil
 	}
 
+	err = rulesValidate(req.Data.Rules) 
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
+
 	if req.Data.Password == "" {
 		return http.StatusBadRequest, fbErrors.ErrEmptyPassword
 	}
