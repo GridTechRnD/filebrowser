@@ -142,7 +142,7 @@ func (d *data) Check(path string) bool {
 	
 	for _, rule := range(unique_rules) {
 		
-		if rule.Regex && rule.Regexp.MatchString(path){
+		if rule.Regex && rule.Matches(path){
 
 			if rule.Allow {
 				

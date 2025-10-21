@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"reflect"
+	"regexp"
 
 	"net/http"
 	"net/url"
@@ -75,6 +76,16 @@ func rulesValidate(rulesList []rules.Rule) error {
 	//Compare each rules with others
 	for r_i, r := range rulesList {
 		
+		if r.Regex {
+			_, err := regexp.Compile(r.Regexp.Raw)
+
+			if err != nil {
+				
+				return errors.New("[" + r.Regexp.Raw + "]: Invalid Regex /")
+			}
+
+		}
+
 		if !r.Regex {
 			
 			if r.Path[ 0 ] != '/' {
