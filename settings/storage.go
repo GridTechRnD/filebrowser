@@ -99,6 +99,14 @@ func (s *Storage) Save(set *Settings) error {
 		}
 	}
 
+	for i, r := range set.Rules {
+
+		if r.Path[ len(r.Path) - 1 ] == '/' {
+
+			set.Rules[i].Path = set.Rules[i].Path[ : len(set.Rules[i].Path) - 1]
+		}
+	}
+
 	err := s.back.Save(set)
 	if err != nil {
 		return err

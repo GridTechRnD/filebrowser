@@ -36,10 +36,26 @@ func NewStorage(back StorageBackend) *Storage {
 
 func (s *Storage) SaveGroup( g *Group ) error {
 	
+	for i, r := range g.Rules {
+
+		if r.Path[ len(r.Path) - 1 ] == '/' {
+
+			g.Rules[i].Path = g.Rules[i].Path[ : len(g.Rules[i].Path) - 1]
+		}
+	}
+
 	return s.back.Create( g )
 }
 
 func (s *Storage) UpdateGroup( g *Group ) error {
+
+	for i, r := range g.Rules {
+
+		if r.Path[ len(r.Path) - 1 ] == '/' {
+
+			g.Rules[i].Path = g.Rules[i].Path[ : len(g.Rules[i].Path) - 1]
+		}
+	}
 
 	return s.back.Update( g )
 }

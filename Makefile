@@ -86,3 +86,11 @@ help: ## Show this help
 		if (/^[a-zA-Z_-]+:.*?##.*$$/) {printf "    ${YELLOW}%-20s${GREEN}%s${RESET}\n", $$1, $$2} \
 		else if (/^## .*$$/) {printf "  ${CYAN}%s${RESET}\n", substr($$1,4)} \
 		}' $(MAKEFILE_LIST)
+
+rebuild:
+	rm filebrowser || true
+	CGO_ENABLED=0 go build
+	docker image rm filebrowser:latest
+	docker build -f Dockerfile -t filebrowser:latest .
+	docker image save filebrowser:latest -o /mnt/c/Users/emanuel.henkel/Downloads/filebrowser_latest.tar
+	@echo "Rebuilt docker image and saved to filebrowser_latest.tar"

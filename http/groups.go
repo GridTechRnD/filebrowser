@@ -50,8 +50,8 @@ var groupPostHandler = withAdmin( func( w http.ResponseWriter, r *http.Request, 
 
 		return http.StatusBadRequest, err
 	}
-	
-	err = d.store.Groups.SaveGroup( req.Data)
+
+	err = d.store.Groups.SaveGroup( req.Data )
 
 	if err != nil {
 		return http.StatusInternalServerError, err

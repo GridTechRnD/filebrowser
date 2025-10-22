@@ -10,8 +10,8 @@ RUN apk update && \
 FROM busybox:1.37.0-musl
 
 # Define non-root user UID and GID
-ENV UID=1000
-ENV GID=1000
+ENV UID=1001
+ENV GID=1001
 
 # Create user group and user
 RUN addgroup -g $GID user && \

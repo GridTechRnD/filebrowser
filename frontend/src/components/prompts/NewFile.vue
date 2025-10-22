@@ -77,6 +77,11 @@ const submit = async (event: Event) => {
     await api.post(uri);
     router.push({ path: uri });
   } catch (e) {
+
+    if (e == "403 Forbidden\n") {
+      $showError(Error('You do not have permission to create a file here.'));
+    }
+
     if (e instanceof Error) {
       $showError(e);
     }

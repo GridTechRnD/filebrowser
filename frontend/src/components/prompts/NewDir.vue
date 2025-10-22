@@ -50,6 +50,7 @@ import url from "@/utils/url";
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import CreateFilePath from "@/components/prompts/CreateFilePath.vue";
+import { error } from "console";
 
 const $showError = inject<IToastError>("$showError")!;
 
@@ -96,6 +97,11 @@ const submit = async (event: Event) => {
       fileStore.updateRequest(res);
     }
   } catch (e) {
+
+    if (e == "403 Forbidden\n") {
+      $showError(Error('You do not have permission to create a directory here.'));
+    }
+
     if (e instanceof Error) {
       $showError(e);
     }

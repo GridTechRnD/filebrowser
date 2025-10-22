@@ -18,24 +18,25 @@
           <router-link to="/settings/global" v-if="user?.perm.admin"
             ><li :class="{ active: $route.path === '/settings/global' }">
               {{ t("settings.globalSettings") }}
-            </li></router-link
-          >
-            
-          <router-link to="/settings/users" v-if="user?.perm.admin"
-            ><li
+            </li>
+          </router-link>
+
+          <router-link to="/settings/usersGroups" v-if="user?.perm.admin">
+            <li>
+              {{ t("settings.usersGroups") }}
+            </li>
+          </router-link>
+
+          <router-link to="/settings/users" v-if="user?.perm.admin"><li
               :class="{
                 active:
                   $route.path === '/settings/users' || $route.name === 'User',
               }"
             >
               {{ t("settings.userManagement") }}
-            </li></router-link
-          >
-          <router-link to="/settings/usersGroups" v-if="user?.perm.admin">
-            <li>
-              {{ t("settings.usersGroups") }}
             </li>
           </router-link>
+
         </ul>
       </div>
     </div>

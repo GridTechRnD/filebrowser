@@ -97,18 +97,25 @@ func AppendRules( a []rules.Rule, b []rules.Rule ) []rules.Rule {
 // Check implements rules.Checker.
 func (d *data) Check(path string) bool {
 	if d.user.HideDotfiles && rules.MatchHidden(path) {
+
 		return false
 	}
 
 	if d.user.Perm.Admin {
+
 		return true
 	}
 
-	if path[ len(path) - 1 ] == '/' {
+	if len(path) == 1 && path[ len(path) - 1 ] == '/' {
+
 		return true
 	}
 
+	if len(path) > 1 && path[ len(path) - 1 ] == '/' {
 
+		path = path[ : len(path) - 1]
+	}
+	
 	//Begin with global rules
 	unique_rules := AppendRules( []rules.Rule{}, d.settings.Rules )
 

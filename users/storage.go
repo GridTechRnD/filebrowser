@@ -78,6 +78,14 @@ func (s *Storage) Update(user *User, fields ...string) error {
 		return err
 	}
 
+	for i, r := range user.Rules {
+
+		if r.Path[ len(r.Path) - 1 ] == '/' {
+
+			user.Rules[i].Path = user.Rules[i].Path[ : len(user.Rules[i].Path) - 1]
+		}
+	}
+	
 	err = s.back.Update(user, fields...)
 	if err != nil {
 		return err
@@ -93,6 +101,14 @@ func (s *Storage) Update(user *User, fields ...string) error {
 func (s *Storage) Save(user *User) error {
 	if err := user.Clean(""); err != nil {
 		return err
+	}
+
+	for i, r := range user.Rules {
+
+		if r.Path[ len(r.Path) - 1 ] == '/' {
+
+			user.Rules[i].Path = user.Rules[i].Path[ : len(user.Rules[i].Path) - 1]
+		}
 	}
 
 	return s.back.Save(user)

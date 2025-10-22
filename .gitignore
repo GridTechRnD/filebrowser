@@ -45,3 +45,6 @@ Dockerfile.dev
 
 /frontend/ssl
 filebrowser.conf
+
+makefile
+Dockerfile
