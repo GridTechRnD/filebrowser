@@ -22,7 +22,7 @@
           </router-link>
 
           <router-link to="/settings/usersGroups" v-if="user?.perm.admin">
-            <li>
+            <li :class="{ active: $route.path === '/settings/usersGroups' }">
               {{ t("settings.usersGroups") }}
             </li>
           </router-link>
