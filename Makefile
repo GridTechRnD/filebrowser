@@ -88,9 +88,9 @@ help: ## Show this help
 		}' $(MAKEFILE_LIST)
 
 rebuild:
-	rm filebrowser || true
+	rm -f filebrowser || true
 	CGO_ENABLED=0 go build
-	docker image rm filebrowser:latest
+	docker image rm -f filebrowser:latest
 	docker build -f Dockerfile -t filebrowser:latest .
 	docker image save filebrowser:latest -o /mnt/c/Users/emanuel.henkel/Downloads/filebrowser_latest.tar
 	@echo "Rebuilt docker image and saved to filebrowser_latest.tar"

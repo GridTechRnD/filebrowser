@@ -87,6 +87,7 @@ func resourceDeleteHandler(fileCache FileCache) handleFunc {
 		}
 
 		err = d.RunHook(func() error {
+			log.Printf("DELETE: user=%s path=%s", d.user.Username, r.URL.Path)
 			return d.user.Fs.RemoveAll(r.URL.Path)
 		}, "delete", r.URL.Path, "", d.user)
 
@@ -106,6 +107,7 @@ func resourcePostHandler(fileCache FileCache) handleFunc {
 
 		// Directories creation on POST.
 		if strings.HasSuffix(r.URL.Path, "/") {
+			log.Printf("MKDIR: user=%s path=%s", d.user.Username, r.URL.Path)
 			err := d.user.Fs.MkdirAll(r.URL.Path, d.settings.DirMode)
 			return errToStatus(err), err
 		}
@@ -135,6 +137,7 @@ func resourcePostHandler(fileCache FileCache) handleFunc {
 		}
 
 		err = d.RunHook(func() error {
+			log.Printf("CREATE: user=%s path=%s", d.user.Username, r.URL.Path)
 			info, writeErr := writeFile(d.user.Fs, r.URL.Path, r.Body, d.settings.FileMode, d.settings.DirMode)
 			if writeErr != nil {
 				return writeErr
@@ -172,6 +175,7 @@ var resourcePutHandler = withUser(func(w http.ResponseWriter, r *http.Request, d
 	}
 
 	err = d.RunHook(func() error {
+		log.Printf("EDIT: user=%s path=%s", d.user.Username, r.URL.Path)
 		info, writeErr := writeFile(d.user.Fs, r.URL.Path, r.Body, d.settings.FileMode, d.settings.DirMode)
 		if writeErr != nil {
 			return writeErr
@@ -223,6 +227,7 @@ func resourcePatchHandler(fileCache FileCache) handleFunc {
 		}
 
 		err = d.RunHook(func() error {
+			log.Printf("%s: user=%s src=%s dst=%s", strings.ToUpper(action), d.user.Username, src, dst)
 			return patchAction(r.Context(), action, src, dst, d, fileCache)
 		}, action, src, dst, d.user)
 

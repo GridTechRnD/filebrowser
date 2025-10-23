@@ -2,7 +2,7 @@
   "port": 80,
   "baseURL": "",
   "address": "",
-  "log": "stdout",
+  "log": "/logs/filebrowser.log",
   "database": "/database/filebrowser.db",
   "root": "/srv"
 }
