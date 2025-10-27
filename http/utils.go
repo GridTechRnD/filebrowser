@@ -3,7 +3,6 @@ package http
 import (
 	"encoding/json"
 	"errors"
-	"log"
 	"reflect"
 	"regexp"
 
@@ -78,7 +77,7 @@ func rulesValidate(rulesList []rules.Rule) error {
 	for r_i, r := range rulesList {
 		
 		if r.Regex {
-			log.Println(r)
+			
 			_, err := regexp.Compile(r.Regexp.Raw)
 
 			if err != nil {
@@ -95,9 +94,14 @@ func rulesValidate(rulesList []rules.Rule) error {
 				return errors.New("[" + r.Path + "]: rules must start with /")
 			}
 
-			if len(r.Path) == 0 || len( strings.Split(r.Path, "/") ) == 0 {
+			if len(r.Path) == 0 {
 
 				return errors.New("empty rule")
+			}
+
+			if len( strings.Split(r.Path, "/") ) == 1 {
+
+				return errors.New("[" + r.Path + "]: invalid rule")
 			}
 
 			r_meta := GetPathMeta(r.Path)
@@ -111,8 +115,13 @@ func rulesValidate(rulesList []rules.Rule) error {
 				if !sr.Regex {
 
 					if r_i != sr_i {
-	
-						if len(sr.Path) == 0 || len( strings.Split(sr.Path, "/") ) == 0 {
+						
+						if len( strings.Split(sr.Path, "/") ) == 1 {
+
+							return errors.New("[" + sr.Path + "]: invalid rule")
+						}
+
+						if len(sr.Path) == 0 {
 	
 							return errors.New("empty rule")
 						}

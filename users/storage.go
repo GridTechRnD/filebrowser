@@ -1,6 +1,7 @@
 package users
 
 import (
+	"log"
 	"sync"
 	"time"
 
@@ -77,12 +78,14 @@ func (s *Storage) Update(user *User, fields ...string) error {
 	if err != nil {
 		return err
 	}
-
+	log.Println(user.Rules)
 	for i, r := range user.Rules {
+		if !r.Regex {
 
-		if r.Path[ len(r.Path) - 1 ] == '/' {
+			if r.Path[ len(r.Path) - 1 ] == '/' {
 
-			user.Rules[i].Path = user.Rules[i].Path[ : len(user.Rules[i].Path) - 1]
+				user.Rules[i].Path = user.Rules[i].Path[ : len(user.Rules[i].Path) - 1]
+			}
 		}
 	}
 	

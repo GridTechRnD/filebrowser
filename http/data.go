@@ -49,13 +49,12 @@ func GetPathMeta( path string ) PathMeta {
 
 
 func AppendRules( a []rules.Rule, b []rules.Rule ) []rules.Rule {
-
+	
 	for _, rule := range b {
-		
 		if !rule.Regex {
-
+			
 			contains := false
-
+			
 			for a_i, a_rule := range a {
 				
 				if !a_rule.Regex {
@@ -63,6 +62,7 @@ func AppendRules( a []rules.Rule, b []rules.Rule ) []rules.Rule {
 					if len(rule.Path) > len(a_rule.Path) && strings.HasPrefix(rule.Path, a_rule.Path) {
 
 						a[a_i] = rule
+						contains = true
 					}
 
 
@@ -86,7 +86,7 @@ func AppendRules( a []rules.Rule, b []rules.Rule ) []rules.Rule {
 
 		if rule.Regex{
 			
-			a = append(a, rule)
+			a = append([]rules.Rule{rule}, a...)
 		}
 	}
 
@@ -96,6 +96,7 @@ func AppendRules( a []rules.Rule, b []rules.Rule ) []rules.Rule {
 
 // Check implements rules.Checker.
 func (d *data) Check(path string) bool {
+
 	if d.user.HideDotfiles && rules.MatchHidden(path) {
 
 		return false
@@ -141,16 +142,18 @@ func (d *data) Check(path string) bool {
 		return len(strings.Split(unique_rules[i].Path, "/")) > len(strings.Split(unique_rules[j].Path, "/"))
 	})
 
-
+	sort.Slice(unique_rules, func(i, j int) bool {
+		return unique_rules[i].Regex && !unique_rules[j].Regex
+	})
+	log.Println(unique_rules)
 	path_meta := GetPathMeta(path)
 
 	allow_rules := []string{}
 	deny_rules := []string{}
 	
 	for _, rule := range(unique_rules) {
-		
-		if rule.Regex && rule.Matches(path){
 
+		if rule.Regex && rule.Matches(path){
 			if rule.Allow {
 				
 				return true
