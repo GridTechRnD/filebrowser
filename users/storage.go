@@ -78,17 +78,17 @@ func (s *Storage) Update(user *User, fields ...string) error {
 	if err != nil {
 		return err
 	}
-	log.Println(user.Rules)
+
 	for i, r := range user.Rules {
 		if !r.Regex {
 
-			if r.Path[ len(r.Path) - 1 ] == '/' {
+			if r.Path[len(r.Path)-1] == '/' {
 
-				user.Rules[i].Path = user.Rules[i].Path[ : len(user.Rules[i].Path) - 1]
+				user.Rules[i].Path = user.Rules[i].Path[:len(user.Rules[i].Path)-1]
 			}
 		}
 	}
-	
+
 	err = s.back.Update(user, fields...)
 	if err != nil {
 		return err
@@ -97,6 +97,7 @@ func (s *Storage) Update(user *User, fields ...string) error {
 	s.mux.Lock()
 	s.updated[user.ID] = time.Now().Unix()
 	s.mux.Unlock()
+	log.Printf("EDIT USER: id=%d username=%s", user.ID, user.Username)
 	return nil
 }
 
@@ -108,13 +109,17 @@ func (s *Storage) Save(user *User) error {
 
 	for i, r := range user.Rules {
 
-		if r.Path[ len(r.Path) - 1 ] == '/' {
+		if r.Path[len(r.Path)-1] == '/' {
 
-			user.Rules[i].Path = user.Rules[i].Path[ : len(user.Rules[i].Path) - 1]
+			user.Rules[i].Path = user.Rules[i].Path[:len(user.Rules[i].Path)-1]
 		}
 	}
 
-	return s.back.Save(user)
+	err := s.back.Save(user)
+	if err == nil {
+		log.Printf("CREATE USER: id=%d username=%s", user.ID, user.Username)
+	}
+	return err
 }
 
 // Delete allows you to delete a user by its name or username. The provided
@@ -130,12 +135,24 @@ func (s *Storage) Delete(id interface{}) error {
 		if user.ID == 1 {
 			return errors.ErrRootUserDeletion
 		}
-		return s.back.DeleteByUsername(id)
+		err = s.back.DeleteByUsername(id)
+		if err == nil {
+			log.Printf("DELETE USER: id=%d username=%s", user.ID, user.Username)
+		}
+		return err
 	case uint:
 		if id == 1 {
 			return errors.ErrRootUserDeletion
 		}
-		return s.back.DeleteByID(id)
+		user, err := s.back.GetBy(id)
+		if err == nil {
+			err = s.back.DeleteByID(id)
+			if err == nil {
+				log.Printf("DELETE USER: id=%d username=%s", user.ID, user.Username)
+			}
+			return err
+		}
+		return err
 	default:
 		return errors.ErrInvalidDataType
 	}

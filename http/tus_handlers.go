@@ -88,6 +88,7 @@ func tusPostHandler() handleFunc {
 			ReadHeader: d.server.TypeDetectionByHeader,
 			Checker:    d,
 		})
+		fmt.Printf("%s POST: user=%s path=%s override=%s\n", time.Now().Format("2006/01/02 15:04:05"), d.user.Username, r.URL.Path, r.URL.Query().Get("override"))
 		switch {
 		case errors.Is(err, afero.ErrFileNotFound):
 			dirPath := filepath.Dir(r.URL.Path)
@@ -202,6 +203,7 @@ func tusPatchHandler() handleFunc {
 		if err != nil {
 			return http.StatusBadRequest, fmt.Errorf("invalid upload offset")
 		}
+		fmt.Printf("%s PATCH: user=%s path=%s offset=%d\n", time.Now().Format("2006/01/02 15:04:05"), d.user.Username, r.URL.Path, uploadOffset)
 
 		file, err := files.NewFileInfo(&files.FileOptions{
 			Fs:         d.user.Fs,
@@ -295,7 +297,8 @@ func tusDeleteHandler() handleFunc {
 		if err != nil {
 			return errToStatus(err), err
 		}
-
+		fmt.Printf("%s DELETE: user=%s path=%s\n", time.Now().Format("2006/01/02 15:04:05"), d.user.Username, r.URL.Path)
+		
 		completeUpload(file.RealPath())
 
 		return http.StatusNoContent, nil

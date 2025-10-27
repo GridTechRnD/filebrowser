@@ -145,7 +145,7 @@ func (d *data) Check(path string) bool {
 	sort.Slice(unique_rules, func(i, j int) bool {
 		return unique_rules[i].Regex && !unique_rules[j].Regex
 	})
-	log.Println(unique_rules)
+	
 	path_meta := GetPathMeta(path)
 
 	allow_rules := []string{}

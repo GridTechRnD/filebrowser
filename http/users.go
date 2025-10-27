@@ -1,11 +1,11 @@
 package http
 
 import (
-	"slices"
 	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
+	"slices"
 	"sort"
 	"strconv"
 
@@ -104,14 +104,14 @@ var userGetHandler = withSelfOrAdmin(func(w http.ResponseWriter, r *http.Request
 })
 
 var userDeleteHandler = withSelfOrAdmin(func(_ http.ResponseWriter, _ *http.Request, d *data) (int, error) {
-	
+
 	groups, err := d.store.Groups.GetAll()
 
 	if err != nil {
 
 		return http.StatusBadRequest, err
 	}
-	
+
 	for _, group := range groups {
 
 		userID := d.raw.(uint)
@@ -120,20 +120,21 @@ var userDeleteHandler = withSelfOrAdmin(func(_ http.ResponseWriter, _ *http.Requ
 				group.UsersIds,
 				func(n uint) bool { return n == userID },
 			)
-			
-			err = d.store.Groups.UpdateGroup( group )
+
+			err = d.store.Groups.UpdateGroup(group)
 			if err != nil {
-				
+
 				return http.StatusBadRequest, err
 			}
 		}
 	}
 
-	err = d.store.Users.Delete(d.raw.(uint))
+	deletedID := d.raw.(uint)
+	err = d.store.Users.Delete(deletedID)
 	if err != nil {
 		return errToStatus(err), err
 	}
-
+	log.Printf("DELETE USER: deleted_by=%s id=%d", d.user.Username, deletedID)
 	return http.StatusOK, nil
 })
 
@@ -147,7 +148,7 @@ var userPostHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, d *
 		return http.StatusBadRequest, nil
 	}
 
-	err = rulesValidate(req.Data.Rules) 
+	err = rulesValidate(req.Data.Rules)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
@@ -173,7 +174,7 @@ var userPostHandler = withAdmin(func(w http.ResponseWriter, r *http.Request, d *
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-
+	log.Printf("CREATE USER: created_by=%s id=%d username=%s", d.user.Username, req.Data.ID, req.Data.Username)
 	w.Header().Set("Location", "/settings/users/"+strconv.FormatUint(uint64(req.Data.ID), 10))
 	return http.StatusCreated, nil
 })
@@ -187,8 +188,8 @@ var userPutHandler = withSelfOrAdmin(func(w http.ResponseWriter, r *http.Request
 	if req.Data.ID != d.raw.(uint) {
 		return http.StatusBadRequest, nil
 	}
-	
-	err = rulesValidate(req.Data.Rules) 
+
+	err = rulesValidate(req.Data.Rules)
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
@@ -241,6 +242,6 @@ var userPutHandler = withSelfOrAdmin(func(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-
+	log.Printf("EDIT USER: edited_by=%s id=%d username=%s", d.user.Username, req.Data.ID, req.Data.Username)
 	return http.StatusOK, nil
 })

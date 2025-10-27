@@ -83,7 +83,7 @@ var rawHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) 
 	if !d.user.Perm.Download {
 		return http.StatusAccepted, nil
 	}
-	
+
 	file, err := files.NewFileInfo(&files.FileOptions{
 		Fs:         d.user.Fs,
 		Path:       r.URL.Path,
@@ -102,6 +102,7 @@ var rawHandler = withUser(func(w http.ResponseWriter, r *http.Request, d *data) 
 	}
 
 	if !file.IsDir {
+		log.Printf("DOWNLOAD FILE: user=%s path=%s", d.user.Username, file.Path)
 		return rawFileHandler(w, r, file)
 	}
 
@@ -200,6 +201,7 @@ func rawDirHandler(w http.ResponseWriter, r *http.Request, d *data, file *files.
 	name += extension
 	w.Header().Set("Content-Disposition", "attachment; filename*=utf-8''"+url.PathEscape(name))
 
+	log.Printf("DOWNLOAD DIR: user=%s path=%s files=%d", d.user.Username, file.Path, len(allFiles))
 	if err := archiver.Archive(r.Context(), w, allFiles); err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -214,6 +216,7 @@ func rawFileHandler(w http.ResponseWriter, r *http.Request, file *files.FileInfo
 	}
 	defer fd.Close()
 
+	
 	setContentDisposition(w, r, file)
 	w.Header().Add("Content-Security-Policy", `script-src 'none';`)
 	w.Header().Set("Cache-Control", "private")
